@@ -156,4 +156,3 @@ BENCHMARK(BM_UnionWithVectorNoBack)
     ->Args({10000})
     ->Args({100000});
 
-BENCHMARK_MAIN();

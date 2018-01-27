@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(benchset)
+project(benchmarks)
 
 if (NOT CMAKE_BUILD_TYPE)
   message(STATUS "No build type provided, default to RELEASE.")
@@ -16,18 +16,8 @@ find_package(Math)
 
 include_directories(. include ${Boost_INCLUDE_DIRS})
 
-# Flags for gcc, clang, intel compilers:
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  include(CheckCXXCompilerFlag)
-  check_cxx_compiler_flag(-std=c++11 HAVE_FLAG_CXX_11)
-  if (HAVE_FLAG_CXX_11)
-    set(CMAKE_CXX_FLAGS "-Wall -std=c++11 ${CMAKE_CXX_FLAGS}")
-  else ()
-    message(FATAL_ERROR "Gorram! Your compiler is too frakking old. C++11 support is required.")
-  endif ()
-  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-  set(CMAKE_CXX_FLAGS_DEBUG "-g -pedantic -fno-omit-frame-pointer -fno-inline-functions")
-endif ()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (Sanitize)
   set(CMAKE_CXX_FLAGS "-fsanitize=address -fsanitize=undefined ${CMAKE_CXX_FLAGS}")
