@@ -5,10 +5,12 @@ include_directories(benchmark/include)
 
 set(bench_cc
   main.cc
-  #  union_bench.cc
-  #  intersection_bench.cc
-  #  insert_bench.cc
-  #  find_bench.cc
+  expr_bt.cc
+  expr_va.cc
+  union_bench.cc
+  intersection_bench.cc
+  insert_bench.cc
+  find_bench.cc
   gate_oo_bench.cc
   gate_va_bench.cc
 )
