@@ -1,5 +1,6 @@
 #include "benchmark/benchmark.h"
 #include "benchset/insert_unique.hh"
+#include "benchset/myflat.hh"
 #include <random>
 #include <set>
 #include <vector>
@@ -19,6 +20,7 @@ static void BM_InsertIntoStdSet(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_InsertIntoStdSet)
+    ->Args({10})
     ->Args({100})
     ->Args({1000})
     ->Args({10000})
@@ -37,6 +39,26 @@ static void BM_InsertIntoFlatSet(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_InsertIntoFlatSet)
+    ->Args({10})
+    ->Args({100})
+    ->Args({1000})
+    ->Args({10000})
+    ->Args({100000});
+
+static void BM_InsertIntoMyFlatSet(benchmark::State& state) {
+  while (state.KeepRunning()) {
+    state.PauseTiming();
+    auto xs = my::flat_set<int>{};
+
+    auto unif = std::uniform_int_distribution<int>();
+    auto rng = std::mt19937_64(state.range(0));
+
+    state.ResumeTiming();
+    while ((signed)xs.size() < state.range(0)) xs.insert(unif(rng));
+  }
+}
+BENCHMARK(BM_InsertIntoMyFlatSet)
+    ->Args({10})
     ->Args({100})
     ->Args({1000})
     ->Args({10000})
@@ -55,6 +77,7 @@ static void BM_InsertIntoUSet(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_InsertIntoUSet)
+    ->Args({10})
     ->Args({100})
     ->Args({1000})
     ->Args({10000})
@@ -73,6 +96,7 @@ static void BM_InsertIntoUniqueVector(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_InsertIntoUniqueVector)
+    ->Args({10})
     ->Args({100})
     ->Args({1000})
     ->Args({10000})
@@ -91,6 +115,7 @@ static void BM_InsertIntoUniqueVectorNoBack(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_InsertIntoUniqueVectorNoBack)
+    ->Args({10})
     ->Args({100})
     ->Args({1000})
     ->Args({10000})
