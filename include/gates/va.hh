@@ -4,6 +4,7 @@
 #include <iostream>
 #include <variant>
 #include <vector>
+#include <boost/variant.hpp>
 
 namespace va_gate {
 
@@ -102,6 +103,37 @@ inline auto apply_gates(std::vector<bool> const& bits, gates const& gs) -> std::
 
 inline auto operator<<(std::ostream& os, gate const& g) -> std::ostream& {
   return std::visit([&os](auto const& v) -> std::ostream& { return v.print(os); }, g);
+}
+
+using boost_gate = boost::variant<
+  not_gate,
+  cnot_gate,
+  swap_gate,
+  toffoli_gate,
+  fredkin_gate
+>;
+
+using boost_gates = std::vector<boost_gate>;
+
+struct gate_vstr : public boost::static_visitor<bool> {
+  std::vector<bool>& m_bits;
+
+  gate_vstr(std::vector<bool>& bits) : m_bits(bits) {}
+
+  template<typename Gate>
+  auto operator()(Gate const& g) const -> bool {
+    g.apply(m_bits);
+    return true;
+  }
+};
+
+inline auto apply_gates(std::vector<bool> const& bits, boost_gates const& gs) -> std::vector<bool> {
+  auto new_bits = bits;
+  auto const vstr = gate_vstr{new_bits};
+  for (auto const& g : gs) {
+    boost::apply_visitor(vstr, g);
+  }
+  return new_bits;
 }
 
 } /* end namespace */
