@@ -115,15 +115,14 @@ using boost_gate = boost::variant<
 
 using boost_gates = std::vector<boost_gate>;
 
-struct gate_vstr : public boost::static_visitor<bool> {
+struct gate_vstr : public boost::static_visitor<void> {
   std::vector<bool>& m_bits;
 
   gate_vstr(std::vector<bool>& bits) : m_bits(bits) {}
 
   template<typename Gate>
-  auto operator()(Gate const& g) const -> bool {
+  auto operator()(Gate const& g) const -> void {
     g.apply(m_bits);
-    return true;
   }
 };
 
