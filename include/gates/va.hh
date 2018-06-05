@@ -135,6 +135,38 @@ inline auto apply_gates(std::vector<bool> const& bits, boost_gates const& gs) ->
   return new_bits;
 }
 
+inline auto apply_which_gates(std::vector<bool> const& bits, boost_gates const& gs) -> std::vector<bool> {
+  auto new_bits = bits;
+  auto const vstr = gate_vstr{new_bits};
+  for (auto const& g : gs) {
+    auto const id = g.which();
+    if (id == 0) {
+      not_gate const& g_ = boost::get<not_gate>(g);
+      new_bits[g_.x] = !new_bits[g_.x];
+    } else if (id == 1) {
+      cnot_gate const& g_ = boost::get<cnot_gate>(g);
+      if (new_bits[g_.c]) new_bits[g_.x] = !new_bits[g_.x];
+    } else if (id == 2) {
+      swap_gate const& g_ = boost::get<swap_gate>(g);
+      auto const old_a = new_bits[g_.a];
+      new_bits[g_.a] = new_bits[g_.b];
+      new_bits[g_.b] = old_a;
+    } else if (id == 3) {
+      toffoli_gate const& g_ = boost::get<toffoli_gate>(g);
+      if (new_bits[g_.c0] && new_bits[g_.c1]) new_bits[g_.x] = !new_bits[g_.x];
+    } else if (id == 4) {
+      fredkin_gate const& g_ = boost::get<fredkin_gate>(g);
+      if (new_bits[g_.c]) {
+        // std::vector<bool>'s operator() returns values so std::swap would fail.
+        auto const old_a = new_bits[g_.a]; // The xor trick would do too...
+        new_bits[g_.a] = new_bits[g_.b];
+        new_bits[g_.b] = old_a;
+      }
+    }
+  }
+  return new_bits;
+}
+
 } /* end namespace */
 
 #endif
