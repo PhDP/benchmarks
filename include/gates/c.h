@@ -50,7 +50,7 @@ typedef struct {
   c_gate_kind kind;
 } c_gate;
 
-inline void apply_c_gates(uint8_t* bits, const uint32_t nbits, const c_gate* gates, const uint32_t ngates) {
+inline void apply_c_gates(bool* bits, const uint32_t nbits, const c_gate* gates, const uint32_t ngates) {
   uint32_t i = 0;
   for (; i < ngates; ++i) {
     if (gates[i].kind == c_toffoli_gate_t) {

@@ -13,6 +13,7 @@ set(bench_cc
   find_bench.cc
   gate_oo_bench.cc
   gate_va_bench.cc
+  gate_c_bench.cc
 )
 
 add_executable(all_benchmarks ${bench_cc})

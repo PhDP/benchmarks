@@ -16,29 +16,29 @@ static void BM_VariantGatesEval(benchmark::State& state) {
     for (auto i = 0u; i < state.range(0); ++i) {
       size_t const id = unif(rng) * 5.0;
       if (id == 0) {
-        size_t const x = unif(rng) * state.range(0);
+        uint32_t const x = unif(rng) * state.range(0);
         gs.push_back(va_gate::not_gate(x));
       } else if (id == 1) {
-        size_t const c = unif(rng) * state.range(0);
-        size_t x = unif(rng) * state.range(0);
+        uint32_t const c = unif(rng) * state.range(0);
+        uint32_t x = unif(rng) * state.range(0);
         while (x == c) x = unif(rng) * state.range(0);
         gs.push_back(va_gate::cnot_gate(c, x));
       } else if (id == 2) {
-        size_t const x = unif(rng) * state.range(0);
-        size_t y = unif(rng) * state.range(0);
+        uint32_t const x = unif(rng) * state.range(0);
+        uint32_t y = unif(rng) * state.range(0);
         while (y == x) y = unif(rng) * state.range(0);
         gs.push_back(va_gate::swap_gate(x, y));
       } else if (id == 3) {
-        size_t const c0 = unif(rng) * state.range(0);
-        size_t c1 = unif(rng) * state.range(0);
-        size_t x = unif(rng) * state.range(0);
+        uint32_t const c0 = unif(rng) * state.range(0);
+        uint32_t c1 = unif(rng) * state.range(0);
+        uint32_t x = unif(rng) * state.range(0);
         while (c1 == c0) c1 = unif(rng) * state.range(0);
         while (x == c0 || x == c1) x = unif(rng) * state.range(0);
         gs.push_back(va_gate::toffoli_gate(c0, c1, x));
       } else if (id == 4) {
-        size_t const c = unif(rng) * state.range(0);
-        size_t x = unif(rng) * state.range(0);
-        size_t y = unif(rng) * state.range(0);
+        uint32_t const c = unif(rng) * state.range(0);
+        uint32_t x = unif(rng) * state.range(0);
+        uint32_t y = unif(rng) * state.range(0);
         while (x == c) x = unif(rng) * state.range(0);
         while (y == c || y == x) x = unif(rng) * state.range(0);
         gs.push_back(va_gate::fredkin_gate(c, x, y));
