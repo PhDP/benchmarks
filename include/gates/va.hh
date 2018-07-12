@@ -101,6 +101,65 @@ inline auto apply_gates(std::vector<bool> const& bits, gates const& gs) -> std::
   return new_bits;
 }
 
+struct visitor {
+  std::vector<bool>& m_bits;
+
+  visitor(std::vector<bool>& bits) : m_bits(bits) {}
+
+  template<typename Gate>
+  auto operator()(Gate const& g) const -> void {
+    g.apply(m_bits);
+  }
+};
+
+struct explicit_visitor {
+  std::vector<bool>& m_bits;
+
+  explicit_visitor(std::vector<bool>& bits) : m_bits(bits) {}
+
+  auto operator()(toffoli_gate const& g) const -> void {
+    if (m_bits[g.c0] && m_bits[g.c1]) m_bits[g.x] = !m_bits[g.x];
+  }
+
+  auto operator()(fredkin_gate const& g) const -> void {
+    if (m_bits[g.c]) {
+      // std::vector<bool>'s operator() returns values so std::swap would fail.
+      auto const old_a = m_bits[g.a]; // The xor trick would do too...
+      m_bits[g.a] = m_bits[g.b];
+      m_bits[g.b] = old_a;
+    }
+  }
+  auto operator()(not_gate const& g) const -> void {
+    m_bits[g.x] = !m_bits[g.x];
+  }
+
+  auto operator()(cnot_gate const& g) const -> void {
+    if (m_bits[g.c]) m_bits[g.x] = !m_bits[g.x];
+  }
+
+  auto operator()(swap_gate const& g) const -> void {
+    auto const old_a = m_bits[g.a];
+    m_bits[g.a] = m_bits[g.b];
+    m_bits[g.b] = old_a;
+  }
+};
+
+inline auto apply_gates_stdvisitor(std::vector<bool> const& bits, gates const& gs) -> std::vector<bool> {
+  auto new_bits = bits;
+  for (auto const& g : gs) {
+    std::visit(visitor{new_bits}, g);
+  }
+  return new_bits;
+}
+
+inline auto apply_gates_explicit_stdvisitor(std::vector<bool> const& bits, gates const& gs) -> std::vector<bool> {
+  auto new_bits = bits;
+  for (auto const& g : gs) {
+    std::visit(explicit_visitor{new_bits}, g);
+  }
+  return new_bits;
+}
+
 inline auto operator<<(std::ostream& os, gate const& g) -> std::ostream& {
   return std::visit([&os](auto const& v) -> std::ostream& { return v.print(os); }, g);
 }
