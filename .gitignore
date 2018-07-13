@@ -9,7 +9,8 @@ CMakeCache.txt
 # Build files:
 Debug
 Release
-build*
+c++/build*
+rust/target*
 *.a
 *.o
 

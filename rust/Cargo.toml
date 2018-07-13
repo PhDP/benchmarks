@@ -1,0 +1,6 @@
+[package]
+name = "sandbox"
+version = "0.1.0"
+authors = ["Philippe Desjardins-Proulx <philippe.d.proulx@gmail.com>"]
+
+[dependencies]
