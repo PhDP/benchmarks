@@ -29,7 +29,7 @@ static void BM_Std17Expr_Simplify(benchmark::State& state) {
         e0 = va::expr{3} * e0 + va::expr{1};
     }
     state.ResumeTiming();
-    auto const s0 = va::simplify(e0);
+    auto const s0 = std::visit(va::simplify{}, e0);
   }
 }
 BENCHMARK(BM_Std17Expr_Simplify)

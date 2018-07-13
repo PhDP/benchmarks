@@ -26,8 +26,8 @@ using expr = std::variant<
 class binary_op {
  public:
   binary_op(expr const& lhs, expr const& rhs) : m_lhs(lhs), m_rhs(rhs) { }
-  auto lhs() const -> expr const& { return m_lhs; }
-  auto rhs() const -> expr const& { return m_rhs; }
+  auto left() const -> expr const& { return m_lhs; }
+  auto right() const -> expr const& { return m_rhs; }
  private:
   expr m_lhs, m_rhs;
 };
@@ -68,65 +68,149 @@ inline auto operator/(expr const& lhs, expr const& rhs) -> expr {
   return std::make_shared<division>(division{lhs, rhs});
 }
 
-template<typename... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<typename... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+struct add_visit {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
+    return expr{lhs + rhs};
+  }
 
-inline auto simplify1(expr const& e) -> expr {
-  return std::visit(overloaded {
-    [](int x) -> expr { return x; },
-    [](std::string const& x) -> expr { return x; },
-    [](std::shared_ptr<addition> const& a) -> expr {
-      return std::visit(overloaded {
-        [&a](int x, int y) -> expr { return x + y; },
-        [&a](int x, expr const& y) -> expr { return x == 0? expr(x) : a; },
-        [&a](expr const& x, int y) -> expr { return y == 0? expr(x) : a; },
-        [&a](expr const& x, expr const& y) -> expr { return a; },
-      }, a->lhs(), a->rhs());
-    },
-    [](std::shared_ptr<substraction> const& s) -> expr {
-      return std::visit(overloaded {
-        [&s](int x, int y) -> expr { return x - y; },
-        [&s](int x, expr const& y) -> expr { return x == 0? expr(x) : s; },
-        [&s](expr const& x, int y) -> expr { return y == 0? expr(x) : s; },
-        [&s](expr const& x, expr const& y) -> expr { return s; },
-      }, s->lhs(), s->rhs());
-    },
-    [](std::shared_ptr<multiplication> const& m) -> expr {
-      return std::visit(overloaded {
-        [&m](int x, int y) -> expr { return x * y; },
-        [&m](int x, expr const& y) -> expr { return x == 0? 0 : (x == 1? y : m); },
-        [&m](expr const& x, int y) -> expr { return y == 0? 0 : (y == 1? x : m); },
-        [&m](expr const& x, expr const& y) -> expr { return m; },
-      }, m->lhs(), m->rhs());
-    },
-    [](std::shared_ptr<division> const& d) -> expr {
-      return std::visit(overloaded {
-        [&d](int x, int y) -> expr { return x / y; },
-        [&d](int x, expr const& y) -> expr { return x == 0? 0 : d; },
-        [&d](expr const& x, int y) -> expr { return y == 1? x : d; },
-        [&d](expr const& x, expr const& y) -> expr { return d; },
-      }, d->lhs(), d->rhs());
-    }
-  }, e);
-}
+  template<typename R>
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
+    return lhs == 0? expr{rhs} : expr{lhs} + expr{rhs};
+  }
 
-inline auto simplify(expr const& e) -> expr {
-  return std::visit(overloaded {
-    [](std::shared_ptr<addition> const& a) -> expr {
-      return simplify1(simplify(a->lhs()) + simplify(a->rhs()));
-    },
-    [](std::shared_ptr<substraction> const& s) -> expr {
-      return simplify1(simplify(s->lhs()) - simplify(s->rhs()));
-    },
-    [](std::shared_ptr<multiplication> const& m) -> expr {
-      return simplify1(simplify(m->lhs()) * simplify(m->rhs()));
-    },
-    [](std::shared_ptr<division> const& d) -> expr {
-      return simplify1(simplify(d->lhs()) / simplify(d->rhs()));
-    },
-    [](expr const& x) -> expr { return x; }
-  }, e);
-}
+  template<typename L>
+  auto operator()(L const& lhs, int64_t rhs) const -> expr{
+    return rhs == 0? expr{lhs} : expr{lhs} + expr{rhs};
+  }
+
+  template<typename L, typename R>
+  auto operator()(L const& lhs, R const& rhs) const -> expr {
+    return expr{lhs} + expr{rhs};
+  }
+};
+
+struct sub_visit {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
+    return expr{lhs - rhs};
+  }
+
+  template<typename R>
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
+    return lhs == 0? expr{rhs} : expr{lhs} - expr{rhs};
+  }
+
+  template<typename L>
+  auto operator()(L const& lhs, int64_t rhs) const -> expr{
+    return rhs == 0? expr{lhs} : expr{lhs} - expr{rhs};
+  }
+
+  template<typename L, typename R>
+  auto operator()(L const& lhs, R const& rhs) const -> expr {
+    return expr{lhs} - expr{rhs};
+  }
+};
+
+struct mul_visit {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
+    return expr{lhs * rhs};
+  }
+
+  template<typename R>
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
+    return lhs == 0?
+      expr{0} : (lhs == 1? expr{rhs} : expr{lhs} * expr{rhs});
+  }
+
+  template<typename L>
+  auto operator()(L const& lhs, int64_t rhs) const -> expr {
+    return rhs == 0?
+      expr{0} : (rhs == 1? expr{lhs} : expr{rhs} * expr{lhs});
+  }
+
+  template<typename L, typename R>
+  auto operator()(L const& lhs, R const& rhs) const -> expr {
+    return expr{lhs} * expr{rhs};
+  }
+};
+
+struct div_visit {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
+    return expr{lhs / rhs};
+  }
+
+  template<typename R>
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
+    return lhs == 0? expr{0} : expr{lhs} / expr{rhs};
+  }
+
+  template<typename L>
+  auto operator()(L const& lhs, int64_t rhs) const -> expr {
+    return rhs == 1? expr{lhs} : expr{lhs} / expr{rhs};
+  }
+
+  template<typename L, typename R>
+  auto operator()(L const& lhs, R const& rhs) const -> expr {
+    return expr{lhs} / expr{rhs};
+  }
+};
+
+struct simplify1 {
+  auto operator()(addition const& a) const -> expr {
+    return std::visit(add_visit{}, a.left(), a.right());
+  }
+
+  auto operator()(substraction const& s) const -> expr {
+    return std::visit(sub_visit{}, s.left(), s.right());
+  }
+
+  auto operator()(multiplication const& m) const -> expr {
+    return std::visit(mul_visit{}, m.left(), m.right());
+  }
+
+  auto operator()(division const& d) const -> expr {
+    return std::visit(div_visit{}, d.left(), d.right());
+  }
+
+  template<typename T>
+  auto operator()(T const& t) const -> expr {
+    return expr{t};
+  }
+};
+
+struct simplify {
+  auto operator()(addition const& a) const -> expr {
+    auto left = std::visit(simplify{}, a.left());
+    auto right = std::visit(simplify{}, a.right());
+    auto add_lr = std::visit(add_visit{}, left, right);
+    return std::visit(simplify1{}, add_lr);
+  }
+
+  auto operator()(substraction const& s) const -> expr {
+    auto left = std::visit(simplify{}, s.left());
+    auto right = std::visit(simplify{}, s.right());
+    auto sub_lr = std::visit(sub_visit{}, left, right);
+    return std::visit(simplify1{}, sub_lr);
+  }
+
+  auto operator()(multiplication const& m) const -> expr {
+    auto left = std::visit(simplify{}, m.left());
+    auto right = std::visit(simplify{}, m.right());
+    auto mul_lr = std::visit(mul_visit{}, left, right);
+    return std::visit(simplify1{}, mul_lr);
+  }
+
+  auto operator()(division const& d) const -> expr {
+    auto left = std::visit(simplify{}, d.left());
+    auto right = std::visit(simplify{}, d.right());
+    auto div_lr = std::visit(div_visit{}, left, right);
+    return std::visit(simplify1{}, div_lr);
+  }
+
+  template<typename T>
+  auto operator()(T const& t) const -> expr {
+    return expr{t};
+  }
+};
 
 } /* end namespace va */
 

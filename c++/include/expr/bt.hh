@@ -14,7 +14,7 @@ struct division;
 
 // The variant for the expression:
 using expr = boost::variant<
-  int,
+  int64_t,
   std::string,
   boost::recursive_wrapper<addition>,
   boost::recursive_wrapper<substraction>,
@@ -66,17 +66,17 @@ inline auto operator/(expr const& lhs, expr const& rhs) -> expr {
 }
 
 struct add_visit : public boost::static_visitor<expr> {
-  auto operator()(int lhs, int rhs) const -> expr {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
     return expr{lhs + rhs};
   }
 
   template<typename R>
-  auto operator()(int lhs, R const& rhs) const -> expr {
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
     return lhs == 0? expr{rhs} : addition{expr{lhs}, expr{rhs}};
   }
 
   template<typename L>
-  auto operator()(L const& lhs, int rhs) const -> expr{
+  auto operator()(L const& lhs, int64_t rhs) const -> expr{
     return rhs == 0? expr{lhs} : addition{expr{lhs}, expr{rhs}};
   }
 
@@ -87,17 +87,17 @@ struct add_visit : public boost::static_visitor<expr> {
 };
 
 struct sub_visit : public boost::static_visitor<expr> {
-  auto operator()(int lhs, int rhs) const -> expr {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
     return expr{lhs - rhs};
   }
 
   template<typename R>
-  auto operator()(int lhs, R const& rhs) const -> expr {
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
     return lhs == 0? expr{rhs} : substraction{expr{lhs}, expr{rhs}};
   }
 
   template<typename L>
-  auto operator()(L const& lhs, int rhs) const -> expr{
+  auto operator()(L const& lhs, int64_t rhs) const -> expr{
     return rhs == 0? expr{lhs} : substraction{expr{lhs}, expr{rhs}};
   }
 
@@ -108,18 +108,18 @@ struct sub_visit : public boost::static_visitor<expr> {
 };
 
 struct mul_visit : public boost::static_visitor<expr> {
-  auto operator()(int lhs, int rhs) const -> expr {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
     return expr{lhs * rhs};
   }
 
   template<typename R>
-  auto operator()(int lhs, R const& rhs) const -> expr {
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
     return lhs == 0?
       expr{0} : (lhs == 1? expr{rhs} : multiplication{expr{lhs}, expr{rhs}});
   }
 
   template<typename L>
-  auto operator()(L const& lhs, int rhs) const -> expr {
+  auto operator()(L const& lhs, int64_t rhs) const -> expr {
     return rhs == 0?
       expr{0} : (rhs == 1? expr{lhs} : multiplication{expr{rhs}, expr{lhs}});
   }
@@ -131,17 +131,17 @@ struct mul_visit : public boost::static_visitor<expr> {
 };
 
 struct div_visit : public boost::static_visitor<expr> {
-  auto operator()(int lhs, int rhs) const -> expr {
+  auto operator()(int64_t lhs, int64_t rhs) const -> expr {
     return expr{lhs / rhs};
   }
 
   template<typename R>
-  auto operator()(int lhs, R const& rhs) const -> expr {
+  auto operator()(int64_t lhs, R const& rhs) const -> expr {
     return lhs == 0? expr{0} : division{expr{lhs}, expr{rhs}};
   }
 
   template<typename L>
-  auto operator()(L const& lhs, int rhs) const -> expr {
+  auto operator()(L const& lhs, int64_t rhs) const -> expr {
     return rhs == 1? expr{lhs} : division{expr{lhs}, expr{rhs}};
   }
 
