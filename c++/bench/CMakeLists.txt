@@ -5,6 +5,7 @@ include_directories(benchmark/include)
 
 set(bench_cc
   main.cc
+  prop_logic_bench.cc
   expr_bt.cc
   expr_va.cc
   union_bench.cc

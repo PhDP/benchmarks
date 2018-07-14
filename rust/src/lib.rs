@@ -16,15 +16,16 @@ fn top() -> Formula {
   return Formula::Negation { child: Rc::new(Formula::Bottom) };
 }
 
-fn conjunction(lhs: Formula, rhs: Formula) -> Formula {
-  return Formula::Negation {
-    child: Rc::new(
-      Formula::Disjunction {
-        lhs_child: Rc::new(Formula::Negation { child: Rc::new(lhs) }),
-        rhs_child: Rc::new(Formula::Negation { child: Rc::new(rhs) })
-      }
-    )
-  }
+fn make_negation(f: Formula) -> Formula {
+  return Formula::Negation { child: Rc::new(f) };
+}
+
+fn make_disjunction(lhs: Formula, rhs: Formula) -> Formula {
+  return Formula::Disjunction { lhs_child: Rc::new(lhs), rhs_child: Rc::new(rhs) };
+}
+
+fn make_conjunction(lhs: Formula, rhs: Formula) -> Formula {
+  return make_negation(make_disjunction(make_negation(lhs), make_negation(rhs)));
 }
 
 fn eval(f: &Formula, values: &HashSet<String>) -> bool {
@@ -46,7 +47,7 @@ mod tests {
     let mut values = HashSet::new();
     values.insert("b".to_string());
     values.insert("c".to_string());
-    let f = conjunction(Formula::Disjunction { lhs_child: Rc::new(Formula::Bottom), rhs_child: Rc::new(Formula::Disjunction { lhs_child: Rc::new(Formula::Variable { name: "a".to_string() }), rhs_child: Rc::new(Formula::Negation { child: Rc::new(Formula::Variable { name: "b".to_string() }) }) }) }, top());
+    let f = make_conjunction(make_disjunction(Formula::Bottom, make_disjunction(Formula::Variable { name: "a".to_string() }, make_negation(Formula::Variable { name: "b".to_string() }))), top());
     b.iter(|| eval(&f, &values));
   }
 }
