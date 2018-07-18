@@ -67,8 +67,23 @@ struct eval_vstr {
   }
 };
 
-auto eval(formula const& f, std::unordered_set<std::string> const& values) {
+inline auto eval(formula const& f, std::unordered_set<std::string> const& values) -> bool {
   return std::visit(eval_vstr{values}, f);
+}
+
+inline auto eval_by_idx(formula const& f, std::unordered_set<std::string> const& values) -> bool {
+  auto const idx = f.index();
+  if (idx == 0) {
+    return false;
+  }
+  if (idx == 1) {
+    return values.find(std::get<std::string>(f)) != values.end();
+  }
+  if (idx == 2) {
+    return !eval_by_idx(std::get<std::shared_ptr<negation>>(f)->child(), values);
+  }
+  auto const& d = std::get<std::shared_ptr<disjunction>>(f);
+  return eval_by_idx(d->lhs(), values) || eval_by_idx(d->rhs(), values);
 }
 
 } /* end namespace logic */
