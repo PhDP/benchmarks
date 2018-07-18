@@ -37,18 +37,22 @@ fn eval(f: &Formula, values: &HashSet<String>) -> bool {
   }
 }
 
+fn eval_test() -> bool {
+  let mut values = HashSet::new();
+  values.insert("b".to_string());
+  values.insert("c".to_string());
+  let f = make_conjunction(make_disjunction(Formula::Bottom, make_disjunction(Formula::Variable { name: "a".to_string() }, make_negation(Formula::Variable { name: "b".to_string() }))), top());
+  return eval(&f, &values);
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
   use test::Bencher;
+  use test::*;
 
   #[bench]
   fn bench_formula0(b: &mut Bencher) {
-    let mut values = HashSet::new();
-    values.insert("b".to_string());
-    values.insert("c".to_string());
-    let f = make_conjunction(make_disjunction(Formula::Bottom, make_disjunction(Formula::Variable { name: "a".to_string() }, make_negation(Formula::Variable { name: "b".to_string() }))), top());
-    b.iter(|| eval(&f, &values));
+    b.iter(|| eval_test() );
   }
 }
-
