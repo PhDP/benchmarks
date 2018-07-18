@@ -73,10 +73,13 @@ inline void c_formula_free(c_formula *f) {
     delete f->var_name;
     break;
   case negation_kind:
+    c_formula_free(f->child);
     free(f->child);
     break;
   case disjunction_kind:
+    c_formula_free(f->lhs);
     free(f->lhs);
+    c_formula_free(f->rhs);
     free(f->rhs);
     break;
   }

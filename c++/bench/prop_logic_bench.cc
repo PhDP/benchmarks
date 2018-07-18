@@ -24,6 +24,7 @@ static void BM_C_PropLogic_Eval(benchmark::State& state) {
     state.ResumeTiming();
     c_eval(f, values);
     c_formula_free(f);
+    free(f);
   }
 }
 BENCHMARK(BM_C_PropLogic_Eval);
